@@ -37,7 +37,6 @@ import { useToast } from "@/hooks/use-toast"
 import type { OrganizationType } from "@/lib/types"
 import { RoleBadge } from "@/components/fsma/role-badge"
 import { AddressAutocomplete } from "@/components/address-autocomplete"
-import { Plus } from "lucide-react"
 
 export default function AdminUsersPage() {
   const { t } = useLanguage()
@@ -551,10 +550,6 @@ export default function AdminUsersPage() {
               : "Quản lý người dùng trong tổ chức của bạn"}
           </p>
         </div>
-        <Button onClick={() => setShowDialog(true)} className="gap-2">
-          <Plus className="size-4" />
-          {t("admin.addUser")}
-        </Button>
       </div>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
