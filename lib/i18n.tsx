@@ -462,6 +462,16 @@ export const translations: Record<string, Record<string, string>> = {
     "analytics.compliance": "Compliance",
     "analytics.loss": "Loss Analysis",
     "analytics.distribution": "Distribution",
+	"org.type.farm_grower": "Farm / Grower",
+    "org.type.packer_packhouse": "Packer / Packhouse",
+    "org.type.processor_manufacturer": "Processor / Manufacturer",
+    "org.type.distributor_warehouse": "Distributor / Warehouse",
+    "org.type.first_receiver": "First Land-Based Receiver",
+    "org.type.importer": "Importer",
+    "org.type.retailer": "Retailer",
+    "org.organization": "Organization",
+    "org.selectOrganization": "Select organization",
+    "org.filterByOrganization": "Filter by organization",
 
     // Compliance Page
     "compliance.title": "FSMA 204 Compliance",
@@ -1186,6 +1196,18 @@ export const translations: Record<string, Record<string, string>> = {
     "vexim.defaultContractDuration": "Thời hạn hợp đồng mặc định",
     "vexim.year": "Năm",
     "vexim.years": "Năm",
+	
+	    // Organization Types - Updated
+    "org.type.farm_grower": "Nông trại / Người trồng",
+    "org.type.packer_packhouse": "Nhà đóng gói",
+    "org.type.processor_manufacturer": "Nhà chế biến / Sản xuất",
+    "org.type.distributor_warehouse": "Nhà phân phối / Kho",
+    "org.type.first_receiver": "Người nhận đầu tiên (Hải sản)",
+    "org.type.importer": "Nhà nhập khẩu",
+    "org.type.retailer": "Nhà bán lẻ",
+    "org.organization": "Tổ chức",
+    "org.selectOrganization": "Chọn tổ chức",
+    "org.filterByOrganization": "Lọc theo tổ chức",
 
     // Navigation
     "nav.dashboard": "Trang chủ",
