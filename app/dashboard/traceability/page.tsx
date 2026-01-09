@@ -1,158 +1,413 @@
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { TraceabilitySearch } from "@/components/traceability-search"
+"use client"
 
-export default async function TraceabilityPage() {
-  const supabase = await createClient()
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { TraceabilityChainViewer } from "@/components/fsma/traceability-chain-viewer"
+import { useLanguage } from "@/hooks/use-language"
+import { extendedTranslations } from "@/lib/i18n-extended"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Network, Package, TrendingUp, AlertCircle, CheckCircle, Shield, Clock, Scale } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 
-  const [lotsCount, ctesCount, shipmentsCount, recentSearches] = await Promise.all([
-    supabase.from("traceability_lots").select("*", { count: "exact", head: true }),
-    supabase.from("critical_tracking_events").select("*", { count: "exact", head: true }),
-    supabase.from("shipments").select("*", { count: "exact", head: true }),
-    supabase
-      .from("traceability_lots")
-      .select("*, products(product_name), facilities(name)")
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ])
+interface ComplianceMetrics {
+  traceability_coverage: number
+  quantity_reconciliation: number
+  audit_logging: number
+  timeline_validation: number
+  overall_score: number
+}
+
+export default function TraceabilityPage() {
+  const { locale } = useLanguage()
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalLots: 0,
+    totalEvents: 0,
+    avgChainLength: 0,
+    incompleteChains: 0,
+  })
+  const [complianceMetrics, setComplianceMetrics] = useState<ComplianceMetrics>({
+    traceability_coverage: 0,
+    quantity_reconciliation: 0,
+    audit_logging: 0,
+    timeline_validation: 0,
+    overall_score: 0,
+  })
+
+  const t = (key: string) => {
+    const keys = key.split(".")
+    let value: any = extendedTranslations[locale as keyof typeof extendedTranslations]
+    for (const k of keys) {
+      value = value?.[k]
+    }
+    return value || key
+  }
+
+  useEffect(() => {
+    async function checkAuth() {
+      const supabase = createClient()
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser()
+
+      if (!authUser) {
+        window.location.href = "/auth/login"
+        return
+      }
+
+      setUser(authUser)
+      await fetchStats(supabase, authUser)
+      await fetchComplianceMetrics(supabase, authUser)
+      setLoading(false)
+    }
+
+    checkAuth()
+  }, [])
+
+  async function fetchStats(supabase: any, authUser: any) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", authUser?.id)
+        .single()
+
+      if (!profile?.organization_id) return
+
+      const { count: lotsCount } = await supabase
+        .from("traceability_lots")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+
+      const { count: eventsCount } = await supabase
+        .from("cte_events")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", profile.organization_id)
+
+      setStats({
+        totalLots: lotsCount || 0,
+        totalEvents: eventsCount || 0,
+        avgChainLength: lotsCount ? Math.round((eventsCount || 0) / lotsCount) : 0,
+        incompleteChains: 0,
+      })
+    } catch (error) {
+      console.error("[v0] Error fetching traceability stats:", error)
+    }
+  }
+
+  async function fetchComplianceMetrics(supabase: any, authUser: any) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", authUser?.id)
+        .single()
+
+      if (!profile?.organization_id) return
+
+      const { data, error } = await supabase.rpc("get_phase1_compliance_score", {
+        p_organization_id: profile.organization_id,
+      })
+
+      if (error) {
+        console.error("[v0] Error fetching compliance metrics:", error)
+        return
+      }
+
+      if (data && data.length > 0) {
+        const metrics = data[0]
+        setComplianceMetrics({
+          traceability_coverage: Number.parseFloat(metrics.traceability_coverage) || 0,
+          quantity_reconciliation: Number.parseFloat(metrics.quantity_reconciliation) || 0,
+          audit_logging: Number.parseFloat(metrics.audit_logging) || 0,
+          timeline_validation: Number.parseFloat(metrics.timeline_validation) || 0,
+          overall_score: Number.parseFloat(metrics.overall_score) || 0,
+        })
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching compliance metrics:", error)
+    }
+  }
+
+  const getComplianceColor = (score: number) => {
+    if (score >= 90) return "text-green-600"
+    if (score >= 70) return "text-yellow-600"
+    return "text-red-600"
+  }
+
+  const getComplianceBgColor = (score: number) => {
+    if (score >= 90) return "bg-green-500/10"
+    if (score >= 70) return "bg-yellow-500/10"
+    return "bg-red-500/10"
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">{t("common.loading")}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Truy xuất nguồn gốc</h1>
-        <p className="text-slate-500 mt-1">Tìm kiếm và theo dõi hành trình của lô hàng</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("traceability.title")}</h1>
+        <p className="text-muted-foreground">{t("traceability.description")}</p>
       </div>
 
-      <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-        <CardHeader>
-          <CardTitle className="text-lg">Tìm kiếm truy xuất</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TraceabilitySearch />
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="traceability" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="traceability">
+            <Network className="size-4 mr-2" />
+            {locale === "vi" ? "Chuỗi Truy Xuất" : "Traceability Chain"}
+          </TabsTrigger>
+          <TabsTrigger value="compliance" data-tour="compliance-tab">
+            <Shield className="size-4 mr-2" />
+            {locale === "vi" ? "Tuân Thủ FSMA 204" : "FSMA 204 Compliance"}
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Tổng số lô hàng</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{lotsCount.count || 0}</div>
-            <p className="text-xs text-slate-500 mt-1">Được theo dõi trong hệ thống</p>
-          </CardContent>
-        </Card>
+        <TabsContent value="traceability" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t("traceability.totalLots")}</CardTitle>
+                <Package className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalLots}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t("traceability.totalEvents")}</CardTitle>
+                <Network className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalEvents}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t("traceability.avgChainLength")}</CardTitle>
+                <TrendingUp className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.avgChainLength}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t("traceability.incompleteChains")}</CardTitle>
+                <AlertCircle className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.incompleteChains}</div>
+              </CardContent>
+            </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Sự kiện CTE</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-teal-600">{ctesCount.count || 0}</div>
-            <p className="text-xs text-slate-500 mt-1">Điểm theo dõi quan trọng</p>
-          </CardContent>
-        </Card>
+          <div data-tour="test-trace-button">
+            <TraceabilityChainViewer />
+          </div>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Vận chuyển</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-600">{shipmentsCount.count || 0}</div>
-            <p className="text-xs text-slate-500 mt-1">Hành trình vận chuyển</p>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="compliance" className="space-y-6">
+          <Card className={getComplianceBgColor(complianceMetrics.overall_score)}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{locale === "vi" ? "Điểm Tuân Thủ FSMA 204" : "FSMA 204 Compliance Score"}</CardTitle>
+                  <CardDescription>
+                    {locale === "vi"
+                      ? "Đánh giá tuân thủ các yêu cầu CTE (Critical Tracking Events) và KDE (Key Data Elements)"
+                      : "Assessment of CTE (Critical Tracking Events) and KDE (Key Data Elements) requirements"}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  {complianceMetrics.overall_score >= 90 ? (
+                    <CheckCircle className="size-8 text-green-600" />
+                  ) : (
+                    <AlertCircle className="size-8 text-yellow-600" />
+                  )}
+                  <span className={`text-4xl font-bold ${getComplianceColor(complianceMetrics.overall_score)}`}>
+                    {complianceMetrics.overall_score.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Progress value={complianceMetrics.overall_score} className="h-3" />
+              <p className="text-sm text-muted-foreground mt-2">
+                {complianceMetrics.overall_score >= 90
+                  ? locale === "vi"
+                    ? "Tuân thủ tuyệt vời! Hệ thống đáp ứng 90%+ yêu cầu FSMA 204."
+                    : "Excellent compliance! System meets 90%+ FSMA 204 requirements."
+                  : locale === "vi"
+                    ? "Cần cải thiện để đạt 90% tuân thủ FSMA 204."
+                    : "Improvements needed to reach 90% FSMA 204 compliance."}
+              </p>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lô hàng gần đây</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentSearches.data && recentSearches.data.length > 0 ? (
-            <div className="space-y-3">
-              {recentSearches.data.map((lot: any) => (
-                <Link
-                  key={lot.id}
-                  href={`/dashboard/traceability/${lot.tlc}`}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-mono font-semibold text-slate-900">{lot.tlc}</p>
-                    <p className="text-sm text-slate-600">{lot.products?.product_name}</p>
-                    <p className="text-xs text-slate-500">{lot.facilities?.name}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">
+                    <Network className="size-5 inline mr-2" />
+                    {locale === "vi" ? "Truy Xuất Hai Chiều (TLC)" : "Bidirectional Traceability (TLC)"}
+                  </CardTitle>
+                  <Badge variant={complianceMetrics.traceability_coverage >= 90 ? "default" : "secondary"}>
+                    {complianceMetrics.traceability_coverage.toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Progress value={complianceMetrics.traceability_coverage} />
+                <p className="text-sm text-muted-foreground">
+                  {locale === "vi"
+                    ? "Truy xuất nguồn gốc (backward) và điểm đến (forward) qua Traceability Lot Code (TLC)"
+                    : "Trace origins (backward) and destinations (forward) via Traceability Lot Code (TLC)"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">
+                    <Scale className="size-5 inline mr-2" />
+                    {locale === "vi" ? "Đối Soát Số Lượng (KDE)" : "Quantity Reconciliation (KDE)"}
+                  </CardTitle>
+                  <Badge variant={complianceMetrics.quantity_reconciliation >= 90 ? "default" : "secondary"}>
+                    {complianceMetrics.quantity_reconciliation.toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Progress value={complianceMetrics.quantity_reconciliation} />
+                <p className="text-sm text-muted-foreground">
+                  {locale === "vi"
+                    ? "Key Data Elements: Số lượng đầu vào = Số lượng đầu ra + Hao hụt được ghi nhận"
+                    : "Key Data Elements: Input quantity = Output quantity + Documented losses"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">
+                    <Shield className="size-5 inline mr-2" />
+                    {locale === "vi" ? "Nhật Ký CTE" : "CTE Audit Logging"}
+                  </CardTitle>
+                  <Badge variant={complianceMetrics.audit_logging >= 90 ? "default" : "secondary"}>
+                    {complianceMetrics.audit_logging.toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Progress value={complianceMetrics.audit_logging} />
+                <p className="text-sm text-muted-foreground">
+                  {locale === "vi"
+                    ? "Tự động ghi lại mọi thay đổi Critical Tracking Events và KDEs"
+                    : "Automatic recording of all Critical Tracking Events and KDE changes"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">
+                    <Clock className="size-5 inline mr-2" />
+                    {locale === "vi" ? "Trình Tự CTE" : "CTE Sequence Validation"}
+                  </CardTitle>
+                  <Badge variant={complianceMetrics.timeline_validation >= 90 ? "default" : "secondary"}>
+                    {complianceMetrics.timeline_validation.toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Progress value={complianceMetrics.timeline_validation} />
+                <p className="text-sm text-muted-foreground">
+                  {locale === "vi"
+                    ? "Xác thực trình tự thời gian các CTEs (Harvesting → Cooling → Packing → Shipping)"
+                    : "Validate CTE chronological sequence (Harvesting → Cooling → Packing → Shipping)"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{locale === "vi" ? "Hành Động Cần Thực Hiện" : "Required Actions"}</CardTitle>
+              <CardDescription>
+                {locale === "vi" ? "Các bước để cải thiện tuân thủ FSMA 204" : "Steps to improve FSMA 204 compliance"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {complianceMetrics.traceability_coverage < 90 && (
+                <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                      {locale === "vi"
+                        ? "Cải thiện truy xuất TLC (Traceability Lot Code)"
+                        : "Improve TLC (Traceability Lot Code) traceability"}
+                    </p>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      {locale === "vi"
+                        ? "Đảm bảo mỗi lô hàng FTL có TLC và ít nhất 1 CTE với KDEs đầy đủ."
+                        : "Ensure each FTL lot has a TLC and at least 1 CTE with complete KDEs."}
+                    </p>
                   </div>
-                  <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-slate-500">Chưa có lô hàng nào</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-blue-200">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <CardTitle className="text-base">Tra cứu theo TLC</CardTitle>
-                <p className="text-xs text-slate-500">Tìm kiếm bằng mã truy xuất</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600 mb-4">Nhập mã TLC để xem toàn bộ hành trình từ nguồn gốc đến đích</p>
-            <Button asChild className="w-full">
-              <Link href="/dashboard/lots">Danh sách TLC</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-teal-200">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                <svg className="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  />
-                </svg>
-              </div>
-              <div>
-                <CardTitle className="text-base">Xem Timeline</CardTitle>
-                <p className="text-xs text-slate-500">Dòng thời gian sự kiện</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600 mb-4">Theo dõi các sự kiện CTE theo dòng thời gian trực quan</p>
-            <Button asChild variant="outline" className="w-full bg-transparent">
-              <Link href="/dashboard/cte">Xem CTEs</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+                </div>
+              )}
+              {complianceMetrics.quantity_reconciliation < 90 && (
+                <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                      {locale === "vi" ? "Hoàn thiện KDEs về số lượng" : "Complete quantity KDEs"}
+                    </p>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      {locale === "vi"
+                        ? "Ghi nhận đầy đủ KDEs: quantity received, quantity shipped, và loss quantity cho mỗi CTE."
+                        : "Record complete KDEs: quantity received, quantity shipped, and loss quantity for each CTE."}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {complianceMetrics.overall_score >= 90 && (
+                <div className="flex items-start gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <CheckCircle className="size-5 text-green-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-green-800 dark:text-green-200">
+                      {locale === "vi" ? "Hệ thống tuân thủ FSMA 204!" : "System is FSMA 204 compliant!"}
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      {locale === "vi"
+                        ? "Tiếp tục duy trì ghi nhận CTEs và KDEs theo quy định. Chuẩn bị sẵn sàng cho FDA audit."
+                        : "Continue maintaining CTE and KDE records as required. Ready for FDA audit."}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

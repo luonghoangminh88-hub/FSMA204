@@ -3,79 +3,78 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Futuristic Dark Mode / Glassmorphism Design System */
 :root {
-  /* Updated to Emerald theme for agriculture */
-  --background: oklch(0.99 0.005 160);
-  --foreground: oklch(0.145 0.02 160);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0.02 160);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.02 160);
-  --primary: oklch(0.55 0.15 160);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 160);
-  --secondary-foreground: oklch(0.25 0.03 160);
-  --muted: oklch(0.96 0.01 160);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.65 0.18 160);
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.01 160);
-  --input: oklch(0.9 0.01 160);
-  --ring: oklch(0.55 0.15 160);
-  --chart-1: oklch(0.55 0.15 160);
-  --chart-2: oklch(0.65 0.18 160);
-  --chart-3: oklch(0.45 0.12 160);
-  --chart-4: oklch(0.7 0.14 140);
-  --chart-5: oklch(0.6 0.16 180);
-  --radius: 2rem;
-  --sidebar: oklch(0.99 0.005 160);
-  --sidebar-foreground: oklch(0.145 0.02 160);
-  --sidebar-primary: oklch(0.55 0.15 160);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.01 160);
-  --sidebar-accent-foreground: oklch(0.25 0.03 160);
-  --sidebar-border: oklch(0.9 0.01 160);
-  --sidebar-ring: oklch(0.55 0.15 160);
-}
+  /* Deep Black/Navy Background - Futuristic */
+  --background: #080a11;
+  --foreground: oklch(0.95 0.005 240);
 
-.dark {
-  --background: oklch(0.145 0.02 160);
-  --foreground: oklch(0.985 0.005 160);
-  --card: oklch(0.18 0.02 160);
-  --card-foreground: oklch(0.985 0.005 160);
-  --popover: oklch(0.18 0.02 160);
-  --popover-foreground: oklch(0.985 0.005 160);
-  --primary: oklch(0.65 0.18 160);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.25 0.03 160);
-  --secondary-foreground: oklch(0.985 0.005 160);
-  --muted: oklch(0.25 0.03 160);
-  --muted-foreground: oklch(0.65 0.02 160);
-  --accent: oklch(0.35 0.05 160);
-  --accent-foreground: oklch(0.985 0.005 160);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.25 0.03 160);
-  --input: oklch(0.25 0.03 160);
-  --ring: oklch(0.55 0.15 160);
-  --chart-1: oklch(0.65 0.18 160);
-  --chart-2: oklch(0.55 0.15 160);
-  --chart-3: oklch(0.75 0.14 140);
-  --chart-4: oklch(0.45 0.12 160);
-  --chart-5: oklch(0.6 0.16 180);
-  --sidebar: oklch(0.2 0.02 160);
-  --sidebar-foreground: oklch(0.985 0.005 160);
-  --sidebar-primary: oklch(0.65 0.18 160);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.25 0.03 160);
-  --sidebar-accent-foreground: oklch(0.985 0.005 160);
-  --sidebar-border: oklch(0.25 0.03 160);
-  --sidebar-ring: oklch(0.55 0.15 160);
+  /* Glass Surface Cards with transparency */
+  --card: #111928cc; /* 80% opacity */
+  --card-foreground: oklch(0.95 0.005 240);
+
+  --popover: #111928;
+  --popover-foreground: oklch(0.95 0.005 240);
+
+  /* Primary: Emerald-500 #10b981 */
+  --primary: oklch(0.65 0.22 162);
+  --primary-foreground: oklch(0.1 0.01 240);
+
+  /* Secondary: Subtle gray surface */
+  --secondary: oklch(0.22 0.015 240);
+  --secondary-foreground: oklch(0.95 0.005 240);
+
+  /* Muted: Dark surface */
+  --muted: oklch(0.2 0.015 240);
+  --muted-foreground: oklch(0.62 0.01 240);
+
+  /* Accent: Emerald for highlights */
+  --accent: oklch(0.65 0.22 162);
+  --accent-foreground: oklch(0.1 0.01 240);
+
+  /* Semantic colors: Vibrant on dark */
+  --success: oklch(0.65 0.22 162); /* Emerald-500 */
+  --success-foreground: oklch(0.1 0.01 240);
+
+  --warning: oklch(0.78 0.18 70); /* Amber-500 */
+  --warning-foreground: oklch(0.12 0.01 70);
+
+  --destructive: oklch(0.58 0.25 25); /* Rose-500 */
+  --destructive-foreground: oklch(0.95 0.005 240);
+
+  --info: oklch(0.65 0.26 250); /* Blue-500 */
+  --info-foreground: oklch(0.1 0.01 240);
+
+  /* Glass borders - white/10 */
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: oklch(0.65 0.22 162);
+
+  /* Chart colors */
+  --chart-1: oklch(0.65 0.22 162); /* Emerald */
+  --chart-2: oklch(0.65 0.26 250); /* Blue */
+  --chart-3: oklch(0.68 0.28 310); /* Purple */
+  --chart-4: oklch(0.78 0.18 70); /* Amber */
+  --chart-5: oklch(0.7 0.22 200); /* Teal */
+
+  --radius: 1.5rem; /* Larger radius for futuristic feel */
+
+  /* Sidebar: Glass effect */
+  --sidebar: #111928cc; /* 80% opacity */
+  --sidebar-foreground: oklch(0.9 0.005 240);
+  --sidebar-primary: oklch(0.65 0.22 162);
+  --sidebar-primary-foreground: oklch(0.1 0.01 240);
+  --sidebar-accent: rgba(16, 185, 129, 0.1);
+  --sidebar-accent-foreground: oklch(0.9 0.005 240);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: oklch(0.65 0.22 162);
 }
 
 @theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Semantic color tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -90,8 +89,14 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -100,7 +105,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 8px);
+  --radius-sm: calc(var(--radius) - 4px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 4px);
   --radius-xl: calc(var(--radius) + 8px);
@@ -118,32 +123,125 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
-  }
-}
-
-/* Custom utility classes for modern UI */
-@layer utilities {
-  .card-elevated {
-    @apply shadow-lg shadow-emerald-500/5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Increased base font size from 15px to 17px for better readability in production */
+    font-size: 17px;
   }
 
-  .card-soft {
-    @apply shadow-md shadow-slate-900/5 hover:shadow-lg hover:shadow-slate-900/10 transition-shadow duration-200;
+  /* Increased heading sizes for better hierarchy */
+  h1 {
+    @apply text-4xl font-black;
   }
 
-  /* Adding QR scanner animation */
-  @keyframes scan {
-    0% {
-      transform: translateY(-100%);
-    }
-    100% {
-      transform: translateY(100%);
-    }
+  h2 {
+    @apply text-3xl font-bold;
   }
 
-  .animate-scan {
-    animation: scan 2s ease-in-out infinite;
+  h3 {
+    @apply text-2xl font-bold;
+  }
+
+  h4 {
+    @apply text-xl font-semibold;
+  }
+
+  /* Increased paragraph and label sizes */
+  p {
+    @apply text-lg leading-relaxed;
+  }
+
+  label {
+    @apply text-base font-medium;
+  }
+
+  /* Increase input and button text sizes */
+  input,
+  textarea,
+  select,
+  button {
+    @apply text-base;
+  }
+
+  /* Glassmorphism utilities */
+  .glass {
+    background: rgba(17, 25, 40, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-strong {
+    background: rgba(17, 25, 40, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-light {
+    background: rgba(17, 25, 40, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Futuristic shadow system */
+  .shadow-glow-emerald {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .shadow-glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .shadow-glow-purple {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  }
+
+  .shadow-glow-amber {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+
+  /* Gradient utilities for icons */
+  .gradient-emerald {
+    @apply bg-gradient-to-br from-emerald-500 to-teal-600;
+  }
+
+  .gradient-blue {
+    @apply bg-gradient-to-br from-blue-500 to-indigo-600;
+  }
+
+  .gradient-purple {
+    @apply bg-gradient-to-br from-purple-500 to-pink-600;
+  }
+
+  .gradient-amber {
+    @apply bg-gradient-to-br from-amber-500 to-orange-600;
+  }
+
+  /* Added gradient for rose/red for FDA button and notification badge */
+  .gradient-rose {
+    @apply bg-gradient-to-br from-rose-500 to-pink-600;
+  }
+
+  /* Smooth scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.5);
   }
 }

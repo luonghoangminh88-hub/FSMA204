@@ -1,18 +1,19 @@
 import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
-import { ChatbotProvider } from "@/components/chatbot-provider"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+})
 
 export const metadata: Metadata = {
-  title: "FoodTrace - Hệ thống truy xuất nguồn gốc thực phẩm FSMA 204",
-  description:
-    "Hệ thống quản lý truy xuất nguồn gốc và tuân thủ thực phẩm toàn cầu theo tiêu chuẩn FSMA 204. Theo dõi Critical Tracking Events (CTE), Key Data Elements (KDE), và Traceability Lot Codes (TLC).",
+  title: "Vexim Global - FSMA 204 Compliance",
+  description: "Tận tâm - Nhanh chóng - Chính xác | Professional food traceability and compliance management system",
   generator: "v0.app",
   icons: {
     icon: [
@@ -33,18 +34,29 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#00A651" },
+    { media: "(prefers-color-scheme: dark)", color: "#10B981" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  userScalable: true,
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="vi">
-      <body className={`font-sans antialiased`}>
-        {children}
-        <Analytics />
-        <Toaster />
-        <ChatbotProvider />
+    <html lang="en">
+      <body className={`${inter.className} antialiased`}>
+        <Providers>
+          {children}
+          <Analytics />
+          <Toaster />
+        </Providers>
       </body>
     </html>
   )

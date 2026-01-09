@@ -1,60 +1,93 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient()
 
-    const { data: subscriptions, error } = await supabase
-      .from("company_subscriptions")
-      .select(`
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const organizationId = searchParams.get("organization_id")
+
+    // Get user profile to check role
+    const { data: profile } = await supabase.from("profiles").select("role, organization_id").eq("id", user.id).single()
+
+    let query = supabase.from("organization_subscriptions").select(
+      `
         *,
-        companies (name),
-        service_packages (name, price_per_month)
-      `)
-      .order("created_at", { ascending: false })
+        organization:organizations(id, name, organization_type),
+        package:service_packages(*)
+      `,
+    )
+
+    // System admins can see all subscriptions
+    if (profile?.role === "system_admin") {
+      if (organizationId) {
+        query = query.eq("organization_id", organizationId)
+      }
+    } else {
+      // Others can only see their organization's subscription
+      query = query.eq("organization_id", profile?.organization_id)
+    }
+
+    const { data: subscriptions, error } = await query.order("created_at", { ascending: false })
 
     if (error) throw error
 
     return NextResponse.json({ subscriptions })
-  } catch (error) {
-    console.error("Error fetching subscriptions:", error)
-    return NextResponse.json({ error: "Failed to fetch subscriptions" }, { status: 500 })
+  } catch (error: any) {
+    console.error("[v0] Error fetching subscriptions:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const body = await request.json()
 
-    // Check if company already has an active subscription
-    const { data: existing } = await supabase
-      .from("company_subscriptions")
-      .select("*")
-      .eq("company_id", body.company_id)
-      .eq("subscription_status", "active")
-      .single()
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (existing) {
-      return NextResponse.json({ error: "Company already has an active subscription" }, { status: 400 })
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: subscription, error } = await supabase
-      .from("company_subscriptions")
+    // Check if user is admin
+    const { data: profile } = await supabase.from("profiles").select("role, organization_id").eq("id", user.id).single()
+
+    if (profile?.role !== "system_admin" && profile?.role !== "org_admin") {
+      return NextResponse.json({ error: "Forbidden - Admin only" }, { status: 403 })
+    }
+
+    const body = await request.json()
+
+    // Add created_by
+    body.created_by = user.id
+
+    // Create subscription
+    const { data: newSubscription, error } = await supabase
+      .from("organization_subscriptions")
       .insert([body])
-      .select(`
-        *,
-        companies (name),
-        service_packages (name, price_per_month)
-      `)
+      .select()
       .single()
 
     if (error) throw error
 
-    return NextResponse.json({ subscription })
-  } catch (error) {
-    console.error("Error creating subscription:", error)
-    return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 })
+    return NextResponse.json({ subscription: newSubscription }, { status: 201 })
+  } catch (error: any) {
+    console.error("[v0] Error creating subscription:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

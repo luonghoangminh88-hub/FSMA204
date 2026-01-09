@@ -1,60 +1,75 @@
-import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
+import { generateInvoiceHTML, type InvoiceData } from "@/lib/invoice/generate-pdf"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const supabase = await createClient()
+  const { id } = await params
+
   try {
-    const supabase = await createClient()
-
+    // Check authentication
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
-
-    if (!user) {
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const invoiceId = params.id
+    // Fetch invoice with organization details
+    const { data: invoice, error: fetchError } = await supabase
+      .from("invoices")
+      .select(`
+        *,
+        organization:organizations(organization_name, address, tax_id)
+      `)
+      .eq("id", id)
+      .single()
 
-    // Get invoice
-    const { data: invoice, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single()
-
-    if (error || !invoice) {
+    if (fetchError || !invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 })
     }
 
-    // Check permission
-    const { data: profile } = await supabase.from("profiles").select("role, company_id").eq("id", user.id).single()
+    // Get user language preference
+    const { data: profile } = await supabase.from("profiles").select("language").eq("id", user.id).single()
 
-    if (profile?.role !== "system_admin" && profile?.company_id !== invoice.company_id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    const language = (profile?.language as "en" | "vi") || "en"
+
+    // Format invoice data
+    const invoiceData: InvoiceData = {
+      invoiceNumber: invoice.invoice_number,
+      invoiceDate: new Date(invoice.invoice_date).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
+      dueDate: new Date(invoice.due_date).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
+      organizationName: invoice.organization.organization_name,
+      organizationAddress: invoice.organization.address,
+      organizationTaxId: invoice.organization.tax_id,
+      billingPeriodStart: new Date(invoice.billing_period_start).toLocaleDateString(
+        language === "vi" ? "vi-VN" : "en-US",
+      ),
+      billingPeriodEnd: new Date(invoice.billing_period_end).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
+      lineItems: invoice.line_items,
+      subtotal: Number.parseFloat(invoice.subtotal),
+      taxRate: Number.parseFloat(invoice.tax_rate),
+      taxAmount: Number.parseFloat(invoice.tax_amount),
+      totalAmount: Number.parseFloat(invoice.total_amount),
+      currency: invoice.currency,
+      totalAmountUsd: invoice.total_amount_usd ? Number.parseFloat(invoice.total_amount_usd) : undefined,
+      bankInfo: invoice.bank_info,
+      language,
     }
 
-    // If no PDF URL, generate it first
-    if (!invoice.pdf_url) {
-      const generateResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/invoices/${invoiceId}/generate-pdf`,
-        {
-          method: "POST",
-          headers: {
-            cookie: request.headers.get("cookie") || "",
-          },
-        },
-      )
+    // Generate HTML
+    const html = generateInvoiceHTML(invoiceData)
 
-      const generateData = await generateResponse.json()
-      if (generateData.success) {
-        invoice.pdf_url = generateData.url
-      }
-    }
-
-    // Redirect to PDF URL
-    if (invoice.pdf_url) {
-      return NextResponse.redirect(invoice.pdf_url)
-    }
-
-    return NextResponse.json({ error: "Failed to generate invoice" }, { status: 500 })
+    // Return HTML response
+    return new NextResponse(html, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `inline; filename="${invoice.invoice_number}.html"`,
+      },
+    })
   } catch (error: any) {
-    console.error("[v0] Invoice download error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("[v0] Error generating invoice:", error)
+    return NextResponse.json({ error: "Failed to generate invoice" }, { status: 500 })
   }
 }

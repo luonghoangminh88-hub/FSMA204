@@ -1,67 +1,40 @@
 import type React from "react"
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { DashboardNav } from "@/components/dashboard-nav"
-import { LanguageProvider } from "@/contexts/language-context"
-import { SubscriptionAlert } from "@/components/subscription-alert"
-import { NotificationBell } from "@/components/notification-bell"
-import { UserProfileMenu } from "@/components/user-profile-menu"
-import { GlobalSearch } from "@/components/global-search"
-import { Suspense } from "react"
-import { PlanBadge } from "@/components/plan-badge" // Import PlanBadge component
+import { createClient } from "@/lib/supabase/server"
+import { CollapsibleSidebar } from "@/components/fsma/collapsible-sidebar"
+import { DashboardHeader } from "@/components/fsma/dashboard-header"
+import { PermissionsProvider } from "@/hooks/use-permissions"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
+
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser()
 
-  if (error || !user) {
-    redirect("/auth/login?error=session_expired")
+  if (!user) {
+    redirect("/auth/login")
   }
 
-  const { ensureProfileExists } = await import("@/lib/supabase/profile-helpers")
-  const { profile, error: profileError } = await ensureProfileExists(user)
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
-  if (!profile) {
-    console.error("[v0] Could not load or create profile for user:", user.email)
-    console.error("[v0] Error:", profileError)
-    await supabase.auth.signOut()
-    redirect("/auth/login?error=profile_creation_failed")
+  if (!profile?.organization_id) {
+    redirect("/auth/onboarding")
   }
 
-  if (profile.role === "system_admin") {
-    redirect("/admin") // Redirect system_admin to /admin instead of /system-admin
-  }
+  const { data: organization } = profile?.organization_id
+    ? await supabase.from("organizations").select("*").eq("id", profile.organization_id).single()
+    : { data: null }
 
   return (
-    <LanguageProvider>
-      <div className="flex min-h-screen">
-        <DashboardNav user={user} profile={profile} />
-        <main className="flex-1 overflow-y-auto bg-slate-50">
-          <div className="border-b bg-white sticky top-0 z-30">
-            <div className="container mx-auto px-6 h-16 flex items-center justify-between gap-4">
-              <Suspense fallback={<div>Loading...</div>}>
-                <GlobalSearch />
-                <div className="flex items-center gap-3">
-                  {profile?.company_id && (
-                    <div className="hidden sm:block">
-                      <PlanBadge companyId={profile.company_id} variant="compact" />
-                    </div>
-                  )}
-                  <NotificationBell />
-                  <UserProfileMenu user={user} profile={profile} />
-                </div>
-              </Suspense>
-            </div>
-          </div>
-          <div className="container mx-auto p-6">
-            {profile?.company_id && <SubscriptionAlert companyId={profile.company_id} />}
-            {children}
-          </div>
-        </main>
+    <PermissionsProvider userRole={profile?.role || "viewer"}>
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-[#080a11] via-[#0f1419] to-[#080a11]">
+        <CollapsibleSidebar profile={profile} organization={organization} />
+        <div className="flex flex-1 flex-col">
+          <DashboardHeader user={user} profile={profile} />
+          <main className="flex-1 p-6 lg:p-10 overflow-y-auto">{children}</main>
+        </div>
       </div>
-    </LanguageProvider>
+    </PermissionsProvider>
   )
 }
