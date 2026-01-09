@@ -135,7 +135,22 @@
     "title": "Thao tác Hàng loạt",
     "transformationComplete": "Biến đổi Hoàn tất",
     "transformationType": "Loại Biến đổi",
-    "updateStatus": "Cập nhật Trạng thái"
+    "updateStatus": "Cập nhật Trạng thái",
+    "transformation": {
+      "cutting": "Cắt nhỏ",
+      "mixing": "Trộn",
+      "packaging": "Đóng gói",
+      "processing": "Chế biến"
+    },
+    "lotStatus": {
+      "active": "Hoạt động",
+      "in_transit": "Đang vận chuyển",
+      "received": "Đã nhận",
+      "transformed": "Đã biến đổi",
+      "shipped": "Đã giao",
+      "consumed": "Đã tiêu thụ",
+      "disposed": "Đã hủy bỏ"
+    }
   },
   "cancel": "Hủy bỏ",
   "checkEmail": {
@@ -586,7 +601,6 @@
     "fdaResponseLog": "Nhật ký Phản hồi FDA",
     "fdaResponseLogDesc": "Lịch sử phản hồi các yêu cầu từ FDA",
     "fromLastMonth": "so với tháng trước",
-    "generate": "Tạo Báo cáo",
     "lossAnalysis": "Phân tích Thất thoát",
     "lossAnalysisDesc": "Phân tích hao hụt số lượng trong chuỗi",
     "monthly": "Hàng tháng",
