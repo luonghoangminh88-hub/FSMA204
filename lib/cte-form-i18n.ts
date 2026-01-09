@@ -21,9 +21,9 @@ export const cteFormTranslations = {
     "cteForm.coolingEndDatetime": "Cooling End Time",
     "cteForm.coolingLocationId": "Cooling Facility",
     "cteForm.coolingMethod": "Cooling Method",
-    "cteForm.initialTemperature": "Initial Temperature (°F)",
-    "cteForm.finalTemperature": "Final Temperature (°F)",
-    "cteForm.targetTemperature": "Target Temperature (°F)",
+    "cteForm.initialTemperature": "Initial Temperature ({unit})",
+    "cteForm.finalTemperature": "Final Temperature ({unit})",
+    "cteForm.targetTemperature": "Target Temperature ({unit})",
     "cteForm.quantityCooled": "Quantity Cooled",
 
     // Initial Packing
@@ -69,7 +69,7 @@ export const cteFormTranslations = {
     "cteForm.carrierName": "Carrier Name",
     "cteForm.trackingNumber": "Tracking Number",
     "cteForm.transportMethod": "Transport Method",
-    "cteForm.transportTemperature": "Transport Temperature (°F)",
+    "cteForm.transportTemperature": "Transport Temperature ({unit})",
     "cteForm.quantityShipped": "Quantity Shipped",
 
     // Receiving
@@ -78,7 +78,7 @@ export const cteFormTranslations = {
     "cteForm.senderAddress": "Sender Address",
     "cteForm.senderPhone": "Sender Phone",
     "cteForm.productCondition": "Product Condition",
-    "cteForm.temperatureAtReceipt": "Temperature at Receipt (°F)",
+    "cteForm.temperatureAtReceipt": "Temperature at Receipt ({unit})",
     "cteForm.qualityNotes": "Quality Notes",
     "cteForm.poNumber": "PO Number",
 
@@ -144,6 +144,7 @@ export const cteFormTranslations = {
     "cteForm.noLocationsAvailable": "No locations available - add locations first",
     "cteForm.submit": "Submit Event",
     "cteForm.submitting": "Submitting...",
+    "cteForm.completionProgress": "Completion Progress",
 
     // Validation messages
     "cteForm.missingFields": "Missing Required Fields",
@@ -187,6 +188,16 @@ export const cteFormTranslations = {
     "tlc.generating": "Generating...",
     "tlc.formatExample": "Format: ORG-FOOD-LOC-YYYYMMDD-####",
     "tlc.leaveBlankAuto": "Leave blank for automatic generation",
+
+    // Common UI buttons
+    "common.select": "Select",
+    "common.cancel": "Cancel",
+
+    // Temperature conversions
+    "cteForm.temperature.fahrenheit": "°F",
+    "cteForm.temperature.celsius": "°C",
+    "cteForm.temperature.convertF2C": "Convert to °C",
+    "cteForm.temperature.convertC2F": "Convert to °F",
   },
   vi: {
     // Common fields
@@ -207,9 +218,9 @@ export const cteFormTranslations = {
     "cteForm.coolingEndDatetime": "Thời gian Kết thúc Làm lạnh",
     "cteForm.coolingLocationId": "Cơ sở Làm lạnh",
     "cteForm.coolingMethod": "Phương pháp Làm lạnh",
-    "cteForm.initialTemperature": "Nhiệt độ Ban đầu (°F)",
-    "cteForm.finalTemperature": "Nhiệt độ Cuối cùng (°F)",
-    "cteForm.targetTemperature": "Nhiệt độ Mục tiêu (°F)",
+    "cteForm.initialTemperature": "Nhiệt độ Ban đầu ({unit})",
+    "cteForm.finalTemperature": "Nhiệt độ Cuối cùng ({unit})",
+    "cteForm.targetTemperature": "Nhiệt độ Mục tiêu ({unit})",
     "cteForm.quantityCooled": "Số lượng Làm lạnh",
 
     // Initial Packing
@@ -255,7 +266,7 @@ export const cteFormTranslations = {
     "cteForm.carrierName": "Tên Hãng Vận chuyển",
     "cteForm.trackingNumber": "Số Theo dõi",
     "cteForm.transportMethod": "Phương thức Vận chuyển",
-    "cteForm.transportTemperature": "Nhiệt độ Vận chuyển (°F)",
+    "cteForm.transportTemperature": "Nhiệt độ Vận chuyển ({unit})",
     "cteForm.quantityShipped": "Số lượng Gửi đi",
 
     // Receiving
@@ -264,7 +275,7 @@ export const cteFormTranslations = {
     "cteForm.senderAddress": "Địa chỉ Người gửi",
     "cteForm.senderPhone": "Điện thoại Người gửi",
     "cteForm.productCondition": "Tình trạng Sản phẩm",
-    "cteForm.temperatureAtReceipt": "Nhiệt độ khi Nhận (°F)",
+    "cteForm.temperatureAtReceipt": "Nhiệt độ khi Nhận ({unit})",
     "cteForm.qualityNotes": "Ghi chú Chất lượng",
     "cteForm.poNumber": "Số PO",
 
@@ -330,6 +341,7 @@ export const cteFormTranslations = {
     "cteForm.noLocationsAvailable": "Không có địa điểm nào - thêm địa điểm trước",
     "cteForm.submit": "Gửi Sự kiện",
     "cteForm.submitting": "Đang gửi...",
+    "cteForm.completionProgress": "Tiến độ hoàn thành",
 
     // Validation messages
     "cteForm.missingFields": "Thiếu Trường Bắt buộc",
@@ -373,6 +385,16 @@ export const cteFormTranslations = {
     "tlc.generating": "Đang tạo...",
     "tlc.formatExample": "Định dạng: ORG-FOOD-LOC-YYYYMMDD-####",
     "tlc.leaveBlankAuto": "Bỏ trống để tạo tự động",
+
+    // Common UI buttons
+    "common.select": "Chọn",
+    "common.cancel": "Hủy",
+
+    // Temperature conversions
+    "cteForm.temperature.fahrenheit": "°F",
+    "cteForm.temperature.celsius": "°C",
+    "cteForm.temperature.convertF2C": "Chuyển đổi sang °C",
+    "cteForm.temperature.convertC2F": "Chuyển đổi sang °F",
   },
 }
 

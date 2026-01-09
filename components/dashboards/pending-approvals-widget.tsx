@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, CheckCircle2, AlertTriangle, ChevronRight, Package, Truck, Inbox } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useLanguage } from "@/hooks/use-language"
 
 interface PendingApproval {
   id: string
@@ -29,6 +30,7 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
   const [loading, setLoading] = useState(true)
   const [count, setCount] = useState(0)
   const router = useRouter()
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadApprovals()
@@ -107,11 +109,11 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-amber-400" />
-            Chờ Phê Duyệt
+            {t("dashboard.pendingApprovals")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-slate-400">Đang tải...</div>
+          <div className="text-center py-8 text-slate-400">{t("common.loading")}</div>
         </CardContent>
       </Card>
     )
@@ -126,8 +128,10 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
               <Clock className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <CardTitle className="text-white">Chờ Phê Duyệt</CardTitle>
-              <CardDescription>{count} mục đang chờ xử lý</CardDescription>
+              <CardTitle className="text-white">{t("dashboard.pendingApprovals")}</CardTitle>
+              <CardDescription>
+                {count} {t("dashboard.pendingApprovalsDesc")}
+              </CardDescription>
             </div>
           </div>
           {count > 0 && (
@@ -138,7 +142,7 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
               className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
             >
               <Link href="/dashboard/approvals" className="flex items-center gap-1">
-                Xem Tất Cả <ChevronRight className="w-4 h-4" />
+                {t("dashboard.viewAllApprovals")} <ChevronRight className="w-4 h-4" />
               </Link>
             </Button>
           )}
@@ -148,7 +152,7 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
         {approvals.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3 opacity-50" />
-            <p className="text-slate-400 text-sm">Không có mục nào cần phê duyệt</p>
+            <p className="text-slate-400 text-sm">{t("dashboard.noPendingApprovals")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -174,7 +178,8 @@ export function PendingApprovalsWidget({ organizationId }: { organizationId: str
                       {approval.quantity} • {approval.location_name}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Chờ {Math.round(approval.hours_pending)}h • Bởi {approval.created_by_name}
+                      {t("dashboard.waitingHours")} {Math.round(approval.hours_pending)}h • {t("dashboard.by")}{" "}
+                      {approval.created_by_name}
                     </p>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase/client"
 import type { CTEType } from "@/lib/types"
 import { getCteFormTranslation } from "@/lib/cte-form-i18n"
+import type { Location } from "@/lib/types" // Assuming Location type is defined somewhere
 
 interface KDEField {
   name: string
@@ -257,9 +258,10 @@ export function KDEForm({ eventType, locale = "en" }: KDEFormProps) {
 
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [locations, setLocations] = useState<any[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
   const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [temperatureUnit, setTemperatureUnit] = useState<"°F" | "°C">("°C")
 
   const fields = kdeFieldsByEvent[eventType]
   const requiredFields = fields.filter((f) => f.required).length
@@ -269,6 +271,12 @@ export function KDEForm({ eventType, locale = "en" }: KDEFormProps) {
   }).length
 
   const t = (key: string, replacements?: Record<string, string>) => getCteFormTranslation(locale, key, replacements)
+
+  const getLocalizedLabel = (labelKey: string): string => {
+    const label = t(labelKey)
+    // Replace {unit} placeholder with current temperature unit
+    return label.replace("{unit}", temperatureUnit)
+  }
 
   const progressPercentage = requiredFields > 0 ? (completedFields / requiredFields) * 100 : 0
 
@@ -517,9 +525,7 @@ export function KDEForm({ eventType, locale = "en" }: KDEFormProps) {
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between text-sm font-medium">
-              <span className="text-muted-foreground">
-                {locale === "vi" ? "Tiến độ hoàn thành" : "Completion Progress"}
-              </span>
+              <span className="text-muted-foreground">{t("cteForm.completionProgress")}</span>
               <span className="text-primary">{Math.round(progressPercentage)}%</span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
@@ -534,7 +540,7 @@ export function KDEForm({ eventType, locale = "en" }: KDEFormProps) {
             {fields.map((field) => (
               <div key={field.name} className="space-y-2">
                 <Label htmlFor={field.name}>
-                  {t(field.labelKey)}
+                  {getLocalizedLabel(field.labelKey)}
                   {field.required && <span className="text-destructive ml-1">*</span>}
                 </Label>
                 {field.type === "location" && (
